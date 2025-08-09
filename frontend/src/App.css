@@ -1,0 +1,11 @@
+/* .export-container svg text,
+.export-container svg tspan,
+.export-container svg foreignObject {
+  fill: #00ffff !important;
+  color: #00ffff !important;
+  font-family: 'Orbitron', 'Courier New', Arial, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+} */
