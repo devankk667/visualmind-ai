@@ -212,25 +212,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// 🌟 Serve frontend in production (cross-platform safe)
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Go up one level from backend to reach frontend/dist
-const frontendPath = path.join(__dirname, "../frontend/dist");
-
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(frontendPath));
-  
-  // Must be after all API routes
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-}
-
 app.listen(PORT, () => {
   console.log(`🚀 VisualMind AI Backend listening at http://localhost:${PORT}`);
   console.log(`📊 Using Groq API with deepseek-r1-distill-llama-70b model`);
