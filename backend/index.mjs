@@ -221,12 +221,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static('C:\\Users\\SWAMIRASAD\\visualmind\\frontend\\dist'));
+  const frontendDistPath = path.join(__dirname, '..', 'frontend', 'dist');
+  app.use(express.static(frontendDistPath));
   app.get("*", (req, res) => {
-    res.sendFile(path.join('C:\\Users\\SWAMIRASAD\\visualmind\\frontend\\dist', "index.html"));
+    res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
-
 
 app.listen(PORT, () => {
   console.log(`🚀 VisualMind AI Backend listening at http://localhost:${PORT}`);

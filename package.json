@@ -1,0 +1,14 @@
+{
+  "name": "visualmindai",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+ "scripts": {
+  "dev": "vite",
+  "start": "concurrently \"npm run backend\" \"npm run frontend\"",
+  "client": "cd frontend && npm run dev",
+  "server": "cd backend && nodemon index.js"
+}
+}

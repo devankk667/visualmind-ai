@@ -1,0 +1,22 @@
+services:
+  - type: static
+    name: visualmind-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: "yarn install && yarn build"
+    publishPath: "dist"
+    routes:
+      - type: rewrite
+        source: /api/:path*
+        destination: https://visualmind-backend.onrender.com/api/:path*
+  - type: web
+    name: visualmind-backend
+    env: node
+    rootDir: backend
+    buildCommand: "npm install"
+    startCommand: "node index.mjs"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false # This should be set in the Render dashboard as a secret.

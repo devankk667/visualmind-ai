@@ -196,7 +196,10 @@ export default function App() {
 
     try {
       // Your actual API call
-      const res = await axios.post("/api/generate", 
+      // Environment-specific API base URL
+      const API_BASE = import.meta.env.VITE_API_BASE || "https://visualmind-ai-3.onrender.com";
+      
+      const res = await axios.post(`${API_BASE}/api/generate`, 
         { topic: topic.trim() },
         { 
           timeout: 30000,

@@ -1,0 +1,95 @@
+name: Multi-Branch Deployment
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        branch: [main, develop, staging]
+        include:
+          - branch: main
+            environment: production
+            api_base: https://visualmind-ai-3.onrender.com
+            subdomain: visualmind-ai
+          - branch: develop
+            environment: development
+            api_base: https://visualmind-ai-dev.onrender.com
+            subdomain: visualmind-ai-dev
+          - branch: staging
+            environment: staging
+            api_base: https://visualmind-ai-staging.onrender.com
+            subdomain: visualmind-ai-staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Set environment variables
+      run: |
+        echo "VITE_API_BASE=${{ matrix.api_base }}" >> frontend/.env
+        echo "NODE_ENV=${{ matrix.environment }}" >> frontend/.env
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+        
+    - name: Deploy to Netlify
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './frontend/dist'
+        production-branch: main
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: "Deploy from GitHub Actions - ${{ github.ref_name }}"
+        enable-pull-request-comment: true
+        enable-commit-comment: true
+        overwrites-pull-request-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      timeout-minutes: 1
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+    
+    strategy:
+      matrix:
+        branch: [main, develop, staging]
+        include:
+          - branch: main
+            render_service: visualmind-ai-3
+          - branch: develop
+            render_service: visualmind-ai-dev
+          - branch: staging
+            render_service: visualmind-ai-staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Deploy to Render
+      uses: johnbeynon/render-deploy-action@v0.0.8
+      with:
+        service-id: ${{ matrix.render_service }}
+        api-key: ${{ secrets.RENDER_API_KEY }}
+        wait-for-success: true
