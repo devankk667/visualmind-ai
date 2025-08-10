@@ -1,5 +1,5 @@
 services:
-  - type: static
+  - type: web
     name: visualmind-frontend
     env: static
     rootDir: frontend
@@ -9,6 +9,7 @@ services:
       - type: rewrite
         source: /api/:path*
         destination: https://visualmind-backend.onrender.com/api/:path*
+
   - type: web
     name: visualmind-backend
     env: node
@@ -19,4 +20,4 @@ services:
       - key: NODE_ENV
         value: production
       - key: GROQ_API_KEY
-        sync: false # This should be set in the Render dashboard as a secret.
+        sync: false
