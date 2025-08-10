@@ -33,7 +33,9 @@ export default function App() {
   const exportRef = useRef(null);
   const renderIdRef = useRef(0);
 
-  const API_BASE = import.meta?.env?.VITE_API_BASE || 'http://localhost:3000';
+  const API_BASE=
+    import.meta?.env?.VITE_API_BASE ||
+     (window.location.hostname==='localhost' ? 'http://localhost:3000' : 'https://visualmind-ai-3.onrender.com');
 
   const sanitize = useCallback((code) => {
     if (!code) return "";
@@ -191,6 +193,8 @@ export default function App() {
         </div>
       </div>
     `;
+
+   
     
     if (container) container.innerHTML = loadingContent;
     if (exportContainer) exportContainer.innerHTML = loadingContent;
