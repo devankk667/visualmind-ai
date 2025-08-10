@@ -221,9 +221,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static('C:\\Users\\SWAMIRASAD\\visualmind\\frontend\\dist'));
+  const frontendDist = path.join(__dirname, "../frontend/dist");
+  app.use(express.static(frontendDist));
   app.get("*", (req, res) => {
-    res.sendFile(path.join('C:\\Users\\SWAMIRASAD\\visualmind\\frontend\\dist', "index.html"));
+    res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
 
