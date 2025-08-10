@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: "https://visualmind-c1gz9zvwq-devankk667s-projects.vercel.app" }));
+app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
@@ -211,6 +211,22 @@ app.get("/api/health", (req, res) => {
     service: "VisualMind AI"
   });
 });
+
+
+// 🌟 Serve frontend in production
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static('C:\\Users\\SWAMIRASAD\\visualmind\\frontend\\dist'));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join('C:\\Users\\SWAMIRASAD\\visualmind\\frontend\\dist', "index.html"));
+  });
+}
+
 
 app.listen(PORT, () => {
   console.log(`🚀 VisualMind AI Backend listening at http://localhost:${PORT}`);

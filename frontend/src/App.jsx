@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import axios from "axios";
 import mermaid from "mermaid";
 import { toPng } from "html-to-image";
 
@@ -32,10 +33,6 @@ export default function App() {
   const previewRef = useRef(null);
   const exportRef = useRef(null);
   const renderIdRef = useRef(0);
-
-  const API_BASE=
-    import.meta?.env?.VITE_API_BASE ||
-     (window.location.hostname==='localhost' ? 'http://localhost:3000' : 'https://visualmind-ai-3.onrender.com');
 
   const sanitize = useCallback((code) => {
     if (!code) return "";
@@ -162,7 +159,7 @@ export default function App() {
     return () => clearTimeout(timeoutId);
   }, [mermaidCode, updatePreview]);
 
-  const generateDiagram = async () => {
+  const generate = async () => {
     if (!topic.trim()) {
       setError("NEURAL INPUT REQUIRED");
       return;
@@ -193,55 +190,42 @@ export default function App() {
         </div>
       </div>
     `;
-
-   
     
     if (container) container.innerHTML = loadingContent;
     if (exportContainer) exportContainer.innerHTML = loadingContent;
 
     try {
-      const response = await fetch(`${API_BASE}/api/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: topic.trim() })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("API Response:", data);
+      // Your actual API call
+      const res = await axios.post("/api/generate", 
+        { topic: topic.trim() },
+        { 
+          timeout: 30000,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
       
-      setRaw(JSON.stringify(data, null, 2));
+      setRaw(res.data.raw || "");
+      setMermaidCode(res.data.mermaid || "");
       
-      if (data.mermaid) {
-        setMermaidCode(data.mermaid);
-      } else if (data.diagram) {
-        setMermaidCode(data.diagram);
-      } else if (data.code) {
-        setMermaidCode(data.code);
-      } else {
+      if (!res.data.mermaid) {
         setError("NO NEURAL DIAGRAM GENERATED - CHECK QUANTUM RESPONSE");
-        setRaw(JSON.stringify(data, null, 2));
       }
-      
     } catch (err) {
       console.error("Neural generation error:", err);
       
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError("NEURAL CONNECTION FAILED - CHECK QUANTUM SERVER");
-      } else if (err.message.includes('404')) {
-        setError("NEURAL ENDPOINT NOT FOUND - CHECK QUANTUM CONFIGURATION");
-      } else if (err.message.includes('500')) {
-        setError("QUANTUM SERVER ERROR - NEURAL GRID UNSTABLE");
-      } else if (err.message.includes('429')) {
+      if (err.code === 'ECONNABORTED') {
+        setError("NEURAL TIMEOUT - QUANTUM INTERFERENCE DETECTED");
+      } else if (err.response?.status === 429) {
         setError("NEURAL OVERLOAD - RATE LIMIT EXCEEDED");
+      } else if (err.response?.status >= 500) {
+        setError("QUANTUM SERVER ERROR - NEURAL GRID UNSTABLE");
+      } else if (err.response?.status === 404) {
+        setError("NEURAL ENDPOINT NOT FOUND - CHECK QUANTUM CONFIGURATION");
       } else {
-        setError(err.message || "NEURAL SYNTHESIS FAILED");
+        setError(err.response?.data?.message || err.message || "NEURAL SYNTHESIS FAILED");
       }
       
-      setRaw(err.message);
+      setRaw(JSON.stringify(err.response?.data, null, 2) || err.message);
     } finally {
       setLoading(false);
     }
@@ -354,7 +338,7 @@ export default function App() {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      generateDiagram();
+      generate();
     }
   };
 
@@ -409,6 +393,15 @@ export default function App() {
     setMermaidCode(exampleCode);
     setTopic("Quantum Neural Processing Pipeline");
   };
+
+  // Update both preview and export containers when mermaidCode changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      updatePreview(mermaidCode);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [mermaidCode, updatePreview]);
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -681,7 +674,7 @@ export default function App() {
                   </div>
                   <button
                     className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-black rounded-2xl font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 neon-glow-cyan hover:scale-105 cyber-font"
-                    onClick={generateDiagram}
+                    onClick={generate}
                     disabled={loading || !topic.trim()}
                   >
                     {loading ? (
@@ -917,7 +910,7 @@ export default function App() {
                             <div className="w-2 h-2 bg-cyan-400 rounded-full mt-2 animate-pulse"></div>
                             <div>
                               <p className="text-cyan-300 font-bold text-sm cyber-font">PRECISION TARGETING</p>
-                              <p className="text-cyan-400/80 text-sm tech-font">"Quantum user authentication matrix" vs "basic login flow"</p>
+                              <p className="text-cyan-400/80 text-sm tech-font">"Quantum user authentication matrix" , "basic login flow"</p>
                             </div>
                           </div>
                         </div>
